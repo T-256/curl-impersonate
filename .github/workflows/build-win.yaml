@@ -13,10 +13,6 @@ on:
 permissions:
   contents: write
 
-env:
-  NSS_VERSION: nss-3.77
-  BORING_SSL_COMMIT: d24a38200fef19150eef00cad35b138936c08767
-
 jobs:
   build-windows:
     name: Build windows binaries
