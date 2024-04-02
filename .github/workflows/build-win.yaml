@@ -1,21 +1,12 @@
 name: Build for windows
 on:
-  workflow_dispatch:
-    inputs:
-      tag:
-        description: "The version to tag, without the leading 'v'. If omitted, will initiate a dry run (no uploads)."
-        type: string
-      sha:
-        description: "The full sha of the commit to be released. If omitted, the latest commit on the default branch will be used."
-        default: ""
-        type: string
   push:
     branches:
       - main
       - feature/*
       - 8.5.0
     tags:
-      - "v*.*.*"
+      - "v*"
   pull_request:
     branches:
       - main
