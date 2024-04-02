@@ -5,7 +5,6 @@
 # PLEASE DO NOT EDIT IT DIRECTLY.
 #
 
-# Python is needed for building libnss.
 # Use it as a common base.
 FROM python:3.11-slim-bookworm as builder
 
@@ -17,7 +16,7 @@ RUN apt-get update && \
 
 # The following are needed because we are going to change some autoconf scripts,
 # both for libnghttp2 and curl.
-RUN apt-get install -y autoconf automake autotools-dev pkg-config libtool
+RUN apt-get install -y autoconf automake autotools-dev pkg-config libtool git
 
 # Dependencies for downloading and building nghttp2
 RUN apt-get install -y bzip2
@@ -85,7 +84,7 @@ RUN cd ${CURL_VERSION} && \
     for p in $(ls curl-*.patch); do patch -p1 < $p; done && \
     autoreconf -fi
 
-# Compile curl with nghttp2, libbrotli and nss (firefox) or boringssl (chrome).
+# Compile curl with nghttp2, libbrotli and boringssl (chrome).
 # Enable keylogfile for debugging of TLS traffic.
 RUN cd ${CURL_VERSION} && \
     ./configure --prefix=/build/install \
@@ -94,9 +93,9 @@ RUN cd ${CURL_VERSION} && \
                 --enable-websockets \
                 --with-nghttp2=/build/${NGHTTP2_VERSION}/installed \
                 --with-brotli=/build/brotli-${BROTLI_VERSION}/build/installed \
-                --with-openssl=/build/boringssl/build \
                 --without-zstd \
                 --enable-ech \
+                --with-openssl=/build/boringssl/build \
                 LIBS="-pthread" \
                 CFLAGS="-I/build/boringssl/build" \
                 USE_CURL_SSLKEYLOGFILE=true && \
@@ -111,7 +110,7 @@ RUN mkdir out && \
 RUN ./out/curl-impersonate -V | grep -q zlib && \
     ./out/curl-impersonate -V | grep -q brotli && \
     ./out/curl-impersonate -V | grep -q nghttp2 && \
-    ./out/curl-impersonate -V | grep -q -e NSS -e BoringSSL
+    ./out/curl-impersonate -V | grep -q -e BoringSSL
 
 # Verify that the resulting 'curl' is really statically compiled
 RUN ! (ldd ./out/curl-impersonate | grep -q -e libcurl -e nghttp2 -e brotli -e ssl -e crypto)
@@ -123,9 +122,9 @@ RUN cd ${CURL_VERSION} && \
     ./configure --prefix=/build/install \
                 --with-nghttp2=/build/${NGHTTP2_VERSION}/installed \
                 --with-brotli=/build/brotli-${BROTLI_VERSION}/build/installed \
-                --with-openssl=/build/boringssl/build \
                 --without-zstd \
                 --enable-ech \
+                --with-openssl=/build/boringssl/build \
                 LIBS="-pthread" \
                 CFLAGS="-I/build/boringssl/build" \
                 USE_CURL_SSLKEYLOGFILE=true && \
